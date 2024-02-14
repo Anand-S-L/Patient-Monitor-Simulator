@@ -1,0 +1,55 @@
+# Service file for vitals
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pm-simulator-kafka
+  name: vitals-service
+  namespace:
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8081
+  selector:
+    app: pm-simulator-kafka
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  externalIPs:
+  - 10.15.91.186
+---
+# deployment file for vitals
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pm-simulator-kafka
+  name: pm-simulator-kafka
+  namespace:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pm-simulator-kafka
+  template:
+    metadata:
+      labels:
+        app: pm-simulator-kafka
+    spec:
+      hostname: pm-simulator-kafka
+      containers:
+        - env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: kafka-broker:9092
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://:9092
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-broker:9092
+          image: bluehydrogen/pm-simulator-kafka:latest
+          imagePullPolicy: Always
+          name: pm-simulator-kafka
+
+          ports:
+            - containerPort: 8081
